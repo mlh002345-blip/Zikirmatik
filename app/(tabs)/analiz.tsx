@@ -32,8 +32,8 @@ export default function AnalizScreen() {
 
   return (
     <Screen contentStyle={styles.content}>
-      <Text style={styles.title}>Manevi Check-up</Text>
-      <Text style={styles.subtitle}>Gelişimini gör, dengeyi koru.</Text>
+      <Text style={styles.title}>Nefis Muhasebesi</Text>
+      <Text style={styles.subtitle}>"Hesaba çekilmeden önce nefsinizi hesaba çekin." — Hz. Ömer</Text>
 
       <View style={styles.statsRow}>
         <Card style={styles.statCard}>
