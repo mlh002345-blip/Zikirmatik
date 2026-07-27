@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -7,11 +7,34 @@ import { Ionicons } from '@expo/vector-icons';
 import AuthField from '@/components/ui/AuthField';
 import Button from '@/components/ui/Button';
 import { colors, fonts, spacing } from '@/constants/theme';
+import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 
 export default function ForgotPasswordScreen() {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [sent, setSent] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSend = async () => {
+    if (!isSupabaseConfigured) {
+      setError('Supabase yapılandırılmadı. .env dosyasını kontrol edin (bkz. supabase/README.md).');
+      return;
+    }
+    if (!email.trim()) {
+      setError('E-posta adresini gir.');
+      return;
+    }
+    setError(null);
+    setLoading(true);
+    const { error: resetError } = await supabase.auth.resetPasswordForEmail(email.trim());
+    setLoading(false);
+    if (resetError) {
+      setError(resetError.message);
+      return;
+    }
+    setSent(true);
+  };
 
   return (
     <View style={styles.flex}>
@@ -32,9 +55,14 @@ export default function ForgotPasswordScreen() {
                 autoCapitalize="none"
                 keyboardType="email-address"
                 value={email}
-                onChangeText={setEmail}
+                onChangeText={(t) => {
+                  setEmail(t);
+                  setError(null);
+                }}
               />
-              <Button label="Bağlantı Gönder" onPress={() => setSent(true)} style={{ marginTop: spacing.md }} />
+              {error ? <Text style={styles.error}>{error}</Text> : null}
+              <Button label={loading ? '...' : 'Bağlantı Gönder'} onPress={handleSend} disabled={loading} style={{ marginTop: spacing.md }} />
+              {loading ? <ActivityIndicator color={colors.gold} style={{ marginTop: spacing.sm }} /> : null}
             </>
           ) : (
             <View style={styles.confirmWrap}>
@@ -90,6 +118,12 @@ const styles = StyleSheet.create({
   },
   confirmText: {
     textAlign: 'center',
+  },
+  error: {
+    fontFamily: fonts.sansMedium,
+    fontSize: 12,
+    color: colors.danger,
+    marginBottom: spacing.sm,
   },
   iconCircle: {
     width: 72,

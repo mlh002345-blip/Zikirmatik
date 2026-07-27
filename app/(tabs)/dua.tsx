@@ -10,9 +10,11 @@ import Button from '@/components/ui/Button';
 import GroupFormModal from '@/components/GroupFormModal';
 import JoinGroupModal from '@/components/JoinGroupModal';
 import { colors, fonts, radius, spacing } from '@/constants/theme';
-import { duaRequests as initialRequests } from '@/constants/community';
 import { dhikrPresets } from '@/constants/dhikr';
 import { useNiyetStore } from '@/store/useNiyetStore';
+import { useGroups } from '@/hooks/useGroups';
+import { useDuaRequests } from '@/hooks/useDuaRequests';
+import DuaRequestModal from '@/components/DuaRequestModal';
 
 type Tab = 'dualar' | 'gruplar';
 
@@ -20,22 +22,16 @@ export default function DuaScreen() {
   const router = useRouter();
   const { tab: tabParam } = useLocalSearchParams<{ tab?: string }>();
   const [tab, setTab] = useState<Tab>(tabParam === 'gruplar' ? 'gruplar' : 'dualar');
-  const [requests, setRequests] = useState(initialRequests);
   const [createVisible, setCreateVisible] = useState(false);
   const [joinVisible, setJoinVisible] = useState(false);
+  const [newDuaVisible, setNewDuaVisible] = useState(false);
 
-  const groups = useNiyetStore((s) => s.groups);
   const setActiveGroup = useNiyetStore((s) => s.setActiveGroup);
+  const { groups } = useGroups();
+  const { requests, toggleAmin } = useDuaRequests();
 
-  const toggleJoin = (id: string) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
-    setRequests((prev) =>
-      prev.map((r) => (r.id === id ? { ...r, joined: !r.joined, duaCount: r.duaCount + (r.joined ? -1 : 1) } : r))
-    );
-  };
-
-  const openGroupZikir = (groupId: string) => {
-    setActiveGroup(groupId);
+  const openGroupZikir = (groupId: string, dhikrId: string) => {
+    setActiveGroup(groupId, dhikrId);
     router.push('/(tabs)/zikirmatik');
   };
 
@@ -61,39 +57,43 @@ export default function DuaScreen() {
 
       {tab === 'dualar' ? (
         <>
-          <Button label="Dua Talebi Oluştur" onPress={() => {}} style={{ marginBottom: spacing.md }} />
-          {requests.map((r) => (
-            <Card key={r.id} style={styles.duaCard}>
-              <View style={styles.duaHeader}>
-                <View style={styles.duaAvatar}>
-                  <Text style={styles.duaAvatarText}>{r.authorInitial}</Text>
+          <Button label="Dua Talebi Oluştur" onPress={() => setNewDuaVisible(true)} style={{ marginBottom: spacing.md }} />
+          {requests.length === 0 ? (
+            <Text style={styles.groupEmptyText}>Henüz bir dua talebi yok. İlk niyeti sen paylaş.</Text>
+          ) : (
+            requests.map((r) => (
+              <Card key={r.id} style={styles.duaCard}>
+                <View style={styles.duaHeader}>
+                  <View style={styles.duaAvatar}>
+                    <Text style={styles.duaAvatarText}>{r.authorInitial}</Text>
+                  </View>
+                  <View style={{ flex: 1, marginLeft: spacing.sm }}>
+                    <Text style={styles.duaAuthor}>{r.authorName}</Text>
+                    <Text style={styles.duaMeta}>
+                      {r.category} · {r.timeAgo}
+                    </Text>
+                  </View>
                 </View>
-                <View style={{ flex: 1, marginLeft: spacing.sm }}>
-                  <Text style={styles.duaAuthor}>{r.authorName}</Text>
-                  <Text style={styles.duaMeta}>
-                    {r.category} · {r.timeAgo}
-                  </Text>
+                <Text style={styles.duaText}>{r.text}</Text>
+                <View style={styles.duaFooter}>
+                  <Text style={styles.duaCount}>{r.duaCount} kişi dua etti</Text>
+                  <Pressable
+                    onPress={() => toggleAmin(r.id, r.joined)}
+                    style={[styles.joinBtn, r.joined && styles.joinBtnActive]}
+                  >
+                    <Ionicons
+                      name={r.joined ? 'heart' : 'heart-outline'}
+                      size={16}
+                      color={r.joined ? colors.emeraldDeep : colors.emeraldSoft}
+                    />
+                    <Text style={[styles.joinText, r.joined && styles.joinTextActive]}>
+                      {r.joined ? 'Amin dedim' : 'Amin de'}
+                    </Text>
+                  </Pressable>
                 </View>
-              </View>
-              <Text style={styles.duaText}>{r.text}</Text>
-              <View style={styles.duaFooter}>
-                <Text style={styles.duaCount}>{r.duaCount} kişi dua etti</Text>
-                <Pressable
-                  onPress={() => toggleJoin(r.id)}
-                  style={[styles.joinBtn, r.joined && styles.joinBtnActive]}
-                >
-                  <Ionicons
-                    name={r.joined ? 'heart' : 'heart-outline'}
-                    size={16}
-                    color={r.joined ? colors.emeraldDeep : colors.emeraldSoft}
-                  />
-                  <Text style={[styles.joinText, r.joined && styles.joinTextActive]}>
-                    {r.joined ? 'Amin dedim' : 'Amin de'}
-                  </Text>
-                </Pressable>
-              </View>
-            </Card>
-          ))}
+              </Card>
+            ))
+          )}
         </>
       ) : (
         <>
@@ -102,10 +102,16 @@ export default function DuaScreen() {
             <Button label="Gruba Katıl" onPress={() => setJoinVisible(true)} variant="secondary" style={{ flex: 1 }} />
           </View>
 
+          {groups.length === 0 ? (
+            <Text style={styles.groupEmptyText}>
+              Henüz bir grubun yok. Aile veya arkadaşlarınla ortak bir hedefe yürümek için bir grup kur ya da davet
+              koduyla katıl.
+            </Text>
+          ) : null}
+
           {groups.map((g) => {
             const progress = g.progress / g.target;
             const dhikr = dhikrPresets.find((d) => d.id === g.dhikrId);
-            const isMember = g.members.some((m) => m.isYou);
             const topMembers = [...g.members].sort((a, b) => b.contribution - a.contribution).slice(0, 4);
 
             return (
@@ -145,17 +151,11 @@ export default function DuaScreen() {
                 </View>
 
                 <View style={styles.groupCardActions}>
-                  {isMember ? (
-                    <>
-                      <Button label="Zikir Çek" onPress={() => openGroupZikir(g.id)} style={{ flex: 1 }} />
-                      <Pressable onPress={() => shareInvite(g.name, g.inviteCode)} style={styles.codeBtn}>
-                        <Ionicons name="share-social-outline" size={14} color={colors.emeraldSoft} />
-                        <Text style={styles.codeBtnText}>{g.inviteCode}</Text>
-                      </Pressable>
-                    </>
-                  ) : (
-                    <Button label="Katılmak için kodu gir" onPress={() => setJoinVisible(true)} variant="ghost" style={{ flex: 1 }} />
-                  )}
+                  <Button label="Zikir Çek" onPress={() => openGroupZikir(g.id, g.dhikrId)} style={{ flex: 1 }} />
+                  <Pressable onPress={() => shareInvite(g.name, g.inviteCode)} style={styles.codeBtn}>
+                    <Ionicons name="share-social-outline" size={14} color={colors.emeraldSoft} />
+                    <Text style={styles.codeBtnText}>{g.inviteCode}</Text>
+                  </Pressable>
                 </View>
               </Card>
             );
@@ -165,6 +165,7 @@ export default function DuaScreen() {
 
       <GroupFormModal visible={createVisible} onClose={() => setCreateVisible(false)} />
       <JoinGroupModal visible={joinVisible} onClose={() => setJoinVisible(false)} />
+      <DuaRequestModal visible={newDuaVisible} onClose={() => setNewDuaVisible(false)} />
     </Screen>
   );
 }
@@ -290,6 +291,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: spacing.sm,
     marginBottom: spacing.md,
+  },
+  groupEmptyText: {
+    fontFamily: fonts.sans,
+    fontSize: 13,
+    color: colors.inkSoft,
+    lineHeight: 20,
+    textAlign: 'center',
+    paddingVertical: spacing.lg,
   },
   groupCard: {
     marginBottom: spacing.sm,

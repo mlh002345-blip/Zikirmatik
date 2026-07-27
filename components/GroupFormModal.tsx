@@ -7,6 +7,7 @@ import Button from '@/components/ui/Button';
 import { colors, fonts, radius, spacing } from '@/constants/theme';
 import { dhikrPresets } from '@/constants/dhikr';
 import { useNiyetStore } from '@/store/useNiyetStore';
+import { useGroups } from '@/hooks/useGroups';
 
 interface GroupFormModalProps {
   visible: boolean;
@@ -15,14 +16,25 @@ interface GroupFormModalProps {
 
 export default function GroupFormModal({ visible, onClose }: GroupFormModalProps) {
   const router = useRouter();
-  const createGroup = useNiyetStore((s) => s.createGroup);
+  const { createGroup } = useGroups();
+  const setActiveGroup = useNiyetStore((s) => s.setActiveGroup);
   const [name, setName] = useState('');
   const [dhikrId, setDhikrId] = useState(dhikrPresets[0].id);
   const [target, setTarget] = useState('10000');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleCreate = () => {
+  const handleCreate = async () => {
     const parsedTarget = parseInt(target.replace(/[^0-9]/g, ''), 10) || 1000;
-    createGroup(name, dhikrId, parsedTarget);
+    setLoading(true);
+    setError(null);
+    const result = await createGroup(name, dhikrId, parsedTarget);
+    setLoading(false);
+    if (!result.success || !result.groupId) {
+      setError(result.error ?? 'Grup oluşturulamadı.');
+      return;
+    }
+    setActiveGroup(result.groupId, dhikrId);
     setName('');
     setTarget('10000');
     onClose();
@@ -31,7 +43,7 @@ export default function GroupFormModal({ visible, onClose }: GroupFormModalProps
 
   return (
     <SheetModal visible={visible} onClose={onClose} title="Yeni Grup Oluştur">
-      <LightField label="Grup Adı" placeholder="Örn. Aile Zikir Halkası" value={name} onChangeText={setName} />
+      <LightField label="Grup Adı" placeholder="Örn. Aile Zikir Halkası" value={name} onChangeText={(t) => { setName(t); setError(null); }} />
 
       <Text style={styles.label}>Zikir Türü</Text>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: spacing.md }}>
@@ -53,7 +65,9 @@ export default function GroupFormModal({ visible, onClose }: GroupFormModalProps
         onChangeText={setTarget}
       />
 
-      <Button label="Grubu Oluştur ve Katıl" onPress={handleCreate} disabled={!name.trim()} />
+      {error ? <Text style={styles.error}>{error}</Text> : null}
+
+      <Button label={loading ? '...' : 'Grubu Oluştur ve Katıl'} onPress={handleCreate} disabled={!name.trim() || loading} />
     </SheetModal>
   );
 }
@@ -85,5 +99,11 @@ const styles = StyleSheet.create({
   },
   chipTextActive: {
     color: colors.cream,
+  },
+  error: {
+    fontFamily: fonts.sansMedium,
+    fontSize: 12,
+    color: colors.danger,
+    marginBottom: spacing.sm,
   },
 });

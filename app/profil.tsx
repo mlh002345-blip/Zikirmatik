@@ -8,11 +8,14 @@ import MotifPattern from '@/components/MotifPattern';
 import { colors, fonts, radius, spacing } from '@/constants/theme';
 import { useNiyetStore } from '@/store/useNiyetStore';
 import { motifs } from '@/constants/motifs';
+import { useSession, displayName } from '@/hooks/useSession';
 
 const LEVELS = ['Yolun Başı', 'Sadık Yolcu', 'Derinleşen Kalp', 'Nur Yüklü Ruh', 'Ehl-i Zikir'];
 
 export default function ProfilScreen() {
   const router = useRouter();
+  const { session } = useSession();
+  const name = displayName(session);
   const totalLifetimeCount = useNiyetStore((s) => s.totalLifetimeCount);
   const streakDays = useNiyetStore((s) => s.streakDays);
   const motifProgress = useNiyetStore((s) => s.motifProgress);
@@ -34,9 +37,9 @@ export default function ProfilScreen() {
 
       <View style={styles.profileHead}>
         <View style={styles.bigAvatar}>
-          <Text style={styles.bigAvatarText}>N</Text>
+          <Text style={styles.bigAvatarText}>{name.charAt(0).toUpperCase()}</Text>
         </View>
-        <Text style={styles.name}>Niyet Kullanıcısı</Text>
+        <Text style={styles.name}>{name}</Text>
         <View style={styles.levelPill}>
           <Ionicons name="sparkles" size={13} color={colors.gold} />
           <Text style={styles.levelText}>{LEVELS[levelIndex]}</Text>

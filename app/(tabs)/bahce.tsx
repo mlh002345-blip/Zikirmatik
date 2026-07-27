@@ -10,22 +10,25 @@ import Button from '@/components/ui/Button';
 import { colors, fonts, radius, spacing } from '@/constants/theme';
 import { useNiyetStore } from '@/store/useNiyetStore';
 import { dhikrPresets } from '@/constants/dhikr';
+import { useSession, displayName } from '@/hooks/useSession';
+import { useGroups } from '@/hooks/useGroups';
 
 export default function HomeScreen() {
   const router = useRouter();
+  const { session } = useSession();
+  const name = displayName(session);
   const gardenLevel = useNiyetStore((s) => s.gardenLevel);
   const streakDays = useNiyetStore((s) => s.streakDays);
   const dailyWirds = useNiyetStore((s) => s.dailyWirds);
   const totalLifetimeCount = useNiyetStore((s) => s.totalLifetimeCount);
-  const groups = useNiyetStore((s) => s.groups);
   const setActiveGroup = useNiyetStore((s) => s.setActiveGroup);
+  const { groups } = useGroups();
 
   const completedWirds = dailyWirds.filter((w) => w.progress >= w.target).length;
-  const myGroups = groups.filter((g) => g.members.some((m) => m.isYou));
-  const featuredGroup = myGroups[0] ?? null;
+  const featuredGroup = groups[0] ?? null;
 
-  const goToGroupZikir = (groupId: string) => {
-    setActiveGroup(groupId);
+  const goToGroupZikir = (groupId: string, dhikrId: string) => {
+    setActiveGroup(groupId, dhikrId);
     router.push('/(tabs)/zikirmatik');
   };
 
@@ -37,7 +40,7 @@ export default function HomeScreen() {
           <Text style={styles.greetingName}>Kalbin bugün de zikirle huzur bulsun.</Text>
         </View>
         <Pressable onPress={() => router.push('/profil')} style={styles.avatar}>
-          <Text style={styles.avatarText}>N</Text>
+          <Text style={styles.avatarText}>{name.charAt(0).toUpperCase()}</Text>
         </Pressable>
       </View>
 
@@ -82,7 +85,11 @@ export default function HomeScreen() {
             <Text style={styles.familyCount}>
               {featuredGroup.progress.toLocaleString('tr-TR')} / {featuredGroup.target.toLocaleString('tr-TR')}
             </Text>
-            <Button label="Ailenle Zikir Çek" onPress={() => goToGroupZikir(featuredGroup.id)} style={{ marginTop: spacing.sm }} />
+            <Button
+              label="Ailenle Zikir Çek"
+              onPress={() => goToGroupZikir(featuredGroup.id, featuredGroup.dhikrId)}
+              style={{ marginTop: spacing.sm }}
+            />
           </>
         ) : (
           <>

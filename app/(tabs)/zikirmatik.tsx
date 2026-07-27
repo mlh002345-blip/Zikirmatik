@@ -10,6 +10,7 @@ import { dhikrPresets } from '@/constants/dhikr';
 import { motifs } from '@/constants/motifs';
 import MotifPattern from '@/components/MotifPattern';
 import SheetModal from '@/components/ui/SheetModal';
+import { useGroups } from '@/hooks/useGroups';
 
 const TARGET_OPTIONS = [33, 100, 1000];
 
@@ -23,9 +24,9 @@ export default function ZikirmatikScreen() {
   const resetSession = useNiyetStore((s) => s.resetSession);
   const setSelectedDhikr = useNiyetStore((s) => s.setSelectedDhikr);
   const setSessionTarget = useNiyetStore((s) => s.setSessionTarget);
-  const groups = useNiyetStore((s) => s.groups);
   const activeGroupId = useNiyetStore((s) => s.activeGroupId);
   const setActiveGroup = useNiyetStore((s) => s.setActiveGroup);
+  const { groups, contribute } = useGroups();
 
   const scale = useRef(new Animated.Value(1)).current;
   const ringOpacity = useRef(new Animated.Value(0)).current;
@@ -35,7 +36,6 @@ export default function ZikirmatikScreen() {
   const activeMotif = motifs.find((m) => m.id === activeMotifId) ?? motifs[0];
   const motifDone = motifProgress[activeMotif.id] ?? 0;
   const activeGroup = groups.find((g) => g.id === activeGroupId) ?? null;
-  const myGroups = groups.filter((g) => g.members.some((m) => m.isYou));
 
   const handleTap = () => {
     const cycleComplete = sessionCount > 0 && sessionCount % sessionTarget === 0;
@@ -45,6 +45,9 @@ export default function ZikirmatikScreen() {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
     }
     incrementSession();
+    if (activeGroupId) {
+      contribute(activeGroupId, 1);
+    }
 
     scale.setValue(0.94);
     Animated.spring(scale, { toValue: 1, useNativeDriver: true, friction: 4, tension: 80 }).start();
@@ -163,18 +166,18 @@ export default function ZikirmatikScreen() {
           <Ionicons name="person-outline" size={18} color={!activeGroupId ? colors.emerald : colors.inkSoft} />
           <Text style={[styles.groupOptionText, !activeGroupId && styles.groupOptionTextActive]}>Bireysel</Text>
         </Pressable>
-        {myGroups.length === 0 ? (
+        {groups.length === 0 ? (
           <Text style={styles.groupEmptyText}>
             Henüz katıldığın bir grup yok. Dua Kardeşliği sekmesinden bir grup oluştur veya davet koduyla katıl.
           </Text>
         ) : (
-          myGroups.map((g) => {
+          groups.map((g) => {
             const active = g.id === activeGroupId;
             return (
               <Pressable
                 key={g.id}
                 onPress={() => {
-                  setActiveGroup(g.id);
+                  setActiveGroup(g.id, g.dhikrId);
                   setGroupPickerVisible(false);
                 }}
                 style={[styles.groupOption, active && styles.groupOptionActive]}

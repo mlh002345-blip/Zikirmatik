@@ -1,16 +1,42 @@
 import React, { useState } from 'react';
-import { KeyboardAvoidingView, Platform, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, KeyboardAvoidingView, Platform, StyleSheet, Text, View } from 'react-native';
 import { Link, useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AuthField from '@/components/ui/AuthField';
 import Button from '@/components/ui/Button';
 import { colors, fonts, spacing } from '@/constants/theme';
+import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 
 export default function LoginScreen() {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleLogin = async () => {
+    if (!isSupabaseConfigured) {
+      setError('Supabase yapılandırılmadı. .env dosyasını kontrol edin (bkz. supabase/README.md).');
+      return;
+    }
+    if (!email.trim() || !password) {
+      setError('E-posta ve şifreni gir.');
+      return;
+    }
+    setError(null);
+    setLoading(true);
+    const { error: signInError } = await supabase.auth.signInWithPassword({
+      email: email.trim(),
+      password,
+    });
+    setLoading(false);
+    if (signInError) {
+      setError(signInError.message);
+      return;
+    }
+    router.replace('/(tabs)/bahce');
+  };
 
   return (
     <View style={styles.flex}>
@@ -28,20 +54,34 @@ export default function LoginScreen() {
                 autoCapitalize="none"
                 keyboardType="email-address"
                 value={email}
-                onChangeText={setEmail}
+                onChangeText={(t) => {
+                  setEmail(t);
+                  setError(null);
+                }}
               />
               <AuthField
                 label="Şifre"
                 placeholder="••••••••"
                 secureTextEntry
                 value={password}
-                onChangeText={setPassword}
+                onChangeText={(t) => {
+                  setPassword(t);
+                  setError(null);
+                }}
               />
               <Link href="/(auth)/forgot-password" style={styles.forgotLink}>
                 Şifremi Unuttum
               </Link>
 
-              <Button label="Giriş Yap" onPress={() => router.replace('/(tabs)/bahce')} style={{ marginTop: spacing.md }} />
+              {error ? <Text style={styles.error}>{error}</Text> : null}
+
+              <Button
+                label={loading ? '...' : 'Giriş Yap'}
+                onPress={handleLogin}
+                disabled={loading}
+                style={{ marginTop: spacing.md }}
+              />
+              {loading ? <ActivityIndicator color={colors.gold} style={{ marginTop: spacing.sm }} /> : null}
 
               <View style={styles.registerRow}>
                 <Text style={styles.registerText}>Hesabın yok mu?</Text>
@@ -84,6 +124,12 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: colors.gold,
     textAlign: 'right',
+    marginBottom: spacing.sm,
+  },
+  error: {
+    fontFamily: fonts.sansMedium,
+    fontSize: 12,
+    color: colors.danger,
     marginBottom: spacing.sm,
   },
   registerRow: {

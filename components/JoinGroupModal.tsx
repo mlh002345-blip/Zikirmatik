@@ -6,6 +6,7 @@ import LightField from '@/components/ui/LightField';
 import Button from '@/components/ui/Button';
 import { colors, fonts, spacing } from '@/constants/theme';
 import { useNiyetStore } from '@/store/useNiyetStore';
+import { useGroups } from '@/hooks/useGroups';
 
 interface JoinGroupModalProps {
   visible: boolean;
@@ -15,20 +16,23 @@ interface JoinGroupModalProps {
 
 export default function JoinGroupModal({ visible, onClose, prefillCode }: JoinGroupModalProps) {
   const router = useRouter();
-  const joinGroupByCode = useNiyetStore((s) => s.joinGroupByCode);
+  const { joinGroupByCode } = useGroups();
   const setActiveGroup = useNiyetStore((s) => s.setActiveGroup);
   const [code, setCode] = useState(prefillCode ?? '');
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleJoin = () => {
-    const result = joinGroupByCode(code);
-    if (!result.success) {
+  const handleJoin = async () => {
+    setLoading(true);
+    const result = await joinGroupByCode(code);
+    setLoading(false);
+    if (!result.success || !result.groupId) {
       setError(result.error ?? 'Bir hata oluştu.');
       return;
     }
     setError(null);
     setCode('');
-    if (result.groupId) setActiveGroup(result.groupId);
+    setActiveGroup(result.groupId, result.dhikrId);
     onClose();
     router.push('/(tabs)/zikirmatik');
   };
@@ -49,7 +53,7 @@ export default function JoinGroupModal({ visible, onClose, prefillCode }: JoinGr
         }}
       />
       {error ? <Text style={styles.error}>{error}</Text> : null}
-      <Button label="Katıl" onPress={handleJoin} disabled={!code.trim()} />
+      <Button label={loading ? '...' : 'Katıl'} onPress={handleJoin} disabled={!code.trim() || loading} />
     </SheetModal>
   );
 }

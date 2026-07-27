@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import Screen from '@/components/ui/Screen';
 import Card from '@/components/ui/Card';
 import { colors, fonts, radius, spacing } from '@/constants/theme';
+import { supabase } from '@/lib/supabase';
 
 function SettingsRow({
   icon,
@@ -85,7 +86,10 @@ export default function AyarlarScreen() {
 
       <Pressable
         style={styles.logoutBtn}
-        onPress={() => router.replace('/(auth)/login')}
+        onPress={async () => {
+          await supabase.auth.signOut();
+          router.replace('/(auth)/login');
+        }}
       >
         <Text style={styles.logoutText}>Çıkış Yap</Text>
       </Pressable>
