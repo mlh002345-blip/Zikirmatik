@@ -12,7 +12,7 @@ const { width } = Dimensions.get('window');
 const SLIDES = [
   {
     icon: 'sparkles-outline' as const,
-    title: 'Kutsal Geometri',
+    title: 'Nur Motifleri',
     body: 'Her zikir, seçtiğin motifin içine altın bir nur doldurur. Selçuklu ve Osmanlı mirasından ilhamla kendi manevi galerini oluştur.',
   },
   {

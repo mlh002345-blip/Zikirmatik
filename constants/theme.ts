@@ -1,4 +1,4 @@
-// Niyet Design System — "Sacred Progression" + "Serene Presence"
+// Niyet Design System — "Nur ile İlerleme" + "Sükûnet İçinde Huzur"
 
 export const colors = {
   // Core palette
