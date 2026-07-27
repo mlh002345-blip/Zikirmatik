@@ -41,7 +41,7 @@ export default function LoginScreen() {
                 Şifremi Unuttum
               </Link>
 
-              <Button label="Giriş Yap" onPress={() => router.replace('/(tabs)')} style={{ marginTop: spacing.md }} />
+              <Button label="Giriş Yap" onPress={() => router.replace('/(tabs)/bahce')} style={{ marginTop: spacing.md }} />
 
               <View style={styles.registerRow}>
                 <Text style={styles.registerText}>Hesabın yok mu?</Text>

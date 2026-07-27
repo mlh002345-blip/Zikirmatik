@@ -39,7 +39,7 @@ export default function RegisterScreen() {
               />
               <AuthField label="Şifre" placeholder="En az 8 karakter" secureTextEntry value={password} onChangeText={setPassword} />
 
-              <Button label="Hesap Oluştur" onPress={() => router.replace('/(tabs)')} style={{ marginTop: spacing.md }} />
+              <Button label="Hesap Oluştur" onPress={() => router.replace('/(tabs)/bahce')} style={{ marginTop: spacing.md }} />
             </View>
           </View>
         </KeyboardAvoidingView>
