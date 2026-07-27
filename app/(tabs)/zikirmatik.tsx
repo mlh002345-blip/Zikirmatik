@@ -9,6 +9,7 @@ import { useNiyetStore } from '@/store/useNiyetStore';
 import { dhikrPresets } from '@/constants/dhikr';
 import { motifs } from '@/constants/motifs';
 import MotifPattern from '@/components/MotifPattern';
+import SheetModal from '@/components/ui/SheetModal';
 
 const TARGET_OPTIONS = [33, 100, 1000];
 
@@ -22,13 +23,19 @@ export default function ZikirmatikScreen() {
   const resetSession = useNiyetStore((s) => s.resetSession);
   const setSelectedDhikr = useNiyetStore((s) => s.setSelectedDhikr);
   const setSessionTarget = useNiyetStore((s) => s.setSessionTarget);
+  const groups = useNiyetStore((s) => s.groups);
+  const activeGroupId = useNiyetStore((s) => s.activeGroupId);
+  const setActiveGroup = useNiyetStore((s) => s.setActiveGroup);
 
   const scale = useRef(new Animated.Value(1)).current;
   const ringOpacity = useRef(new Animated.Value(0)).current;
+  const [groupPickerVisible, setGroupPickerVisible] = React.useState(false);
 
   const dhikr = dhikrPresets.find((d) => d.id === selectedDhikrId) ?? dhikrPresets[0];
   const activeMotif = motifs.find((m) => m.id === activeMotifId) ?? motifs[0];
   const motifDone = motifProgress[activeMotif.id] ?? 0;
+  const activeGroup = groups.find((g) => g.id === activeGroupId) ?? null;
+  const myGroups = groups.filter((g) => g.members.some((m) => m.isYou));
 
   const handleTap = () => {
     const cycleComplete = sessionCount > 0 && sessionCount % sessionTarget === 0;
@@ -63,30 +70,47 @@ export default function ZikirmatikScreen() {
             {motifDone}/{activeMotif.target}
           </Text>
         </View>
+        <Pressable onPress={() => setGroupPickerVisible(true)} style={styles.groupBtn}>
+          <Ionicons name="people" size={18} color={activeGroup ? colors.goldBright : colors.mist} />
+        </Pressable>
         <Pressable onPress={resetSession} style={styles.resetBtn}>
           <Ionicons name="refresh" size={18} color={colors.mist} />
         </Pressable>
       </View>
 
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.chipRow}
-        style={{ flexGrow: 0 }}
-      >
-        {dhikrPresets.map((d) => {
-          const active = d.id === selectedDhikrId;
-          return (
-            <Pressable
-              key={d.id}
-              onPress={() => setSelectedDhikr(d.id)}
-              style={[styles.chip, active && styles.chipActive]}
-            >
-              <Text style={[styles.chipText, active && styles.chipTextActive]}>{d.transliteration}</Text>
-            </Pressable>
-          );
-        })}
-      </ScrollView>
+      {activeGroup ? (
+        <View style={styles.groupBanner}>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.groupBannerLabel}>Grup zikri: {activeGroup.name}</Text>
+            <Text style={styles.groupBannerSub}>
+              Grup toplamı {activeGroup.progress.toLocaleString('tr-TR')} / {activeGroup.target.toLocaleString('tr-TR')}
+            </Text>
+          </View>
+          <Pressable onPress={() => setActiveGroup(null)} style={styles.groupBannerClose}>
+            <Ionicons name="close" size={16} color={colors.mist} />
+          </Pressable>
+        </View>
+      ) : (
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.chipRow}
+          style={{ flexGrow: 0 }}
+        >
+          {dhikrPresets.map((d) => {
+            const active = d.id === selectedDhikrId;
+            return (
+              <Pressable
+                key={d.id}
+                onPress={() => setSelectedDhikr(d.id)}
+                style={[styles.chip, active && styles.chipActive]}
+              >
+                <Text style={[styles.chipText, active && styles.chipTextActive]}>{d.transliteration}</Text>
+              </Pressable>
+            );
+          })}
+        </ScrollView>
+      )}
 
       <View style={styles.center}>
         <Text style={styles.arabic}>{dhikr.arabic}</Text>
@@ -127,6 +151,41 @@ export default function ZikirmatikScreen() {
           </Pressable>
         ))}
       </View>
+
+      <SheetModal visible={groupPickerVisible} onClose={() => setGroupPickerVisible(false)} title="Grup Seç">
+        <Pressable
+          onPress={() => {
+            setActiveGroup(null);
+            setGroupPickerVisible(false);
+          }}
+          style={[styles.groupOption, !activeGroupId && styles.groupOptionActive]}
+        >
+          <Ionicons name="person-outline" size={18} color={!activeGroupId ? colors.emerald : colors.inkSoft} />
+          <Text style={[styles.groupOptionText, !activeGroupId && styles.groupOptionTextActive]}>Bireysel</Text>
+        </Pressable>
+        {myGroups.length === 0 ? (
+          <Text style={styles.groupEmptyText}>
+            Henüz katıldığın bir grup yok. Dua Kardeşliği sekmesinden bir grup oluştur veya davet koduyla katıl.
+          </Text>
+        ) : (
+          myGroups.map((g) => {
+            const active = g.id === activeGroupId;
+            return (
+              <Pressable
+                key={g.id}
+                onPress={() => {
+                  setActiveGroup(g.id);
+                  setGroupPickerVisible(false);
+                }}
+                style={[styles.groupOption, active && styles.groupOptionActive]}
+              >
+                <Ionicons name="people-outline" size={18} color={active ? colors.emerald : colors.inkSoft} />
+                <Text style={[styles.groupOptionText, active && styles.groupOptionTextActive]}>{g.name}</Text>
+              </Pressable>
+            );
+          })
+        )}
+      </SheetModal>
     </SafeAreaView>
   );
 }
@@ -169,6 +228,74 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: 'rgba(251,246,234,0.06)',
+  },
+  groupBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(251,246,234,0.06)',
+    marginRight: spacing.xs,
+  },
+  groupBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginHorizontal: spacing.lg,
+    marginTop: spacing.md,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: radius.md,
+    backgroundColor: 'rgba(232,201,122,0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(232,201,122,0.3)',
+  },
+  groupBannerLabel: {
+    fontFamily: fonts.sansBold,
+    fontSize: 13,
+    color: colors.goldBright,
+  },
+  groupBannerSub: {
+    fontFamily: fonts.sans,
+    fontSize: 11,
+    color: colors.mist,
+    marginTop: 2,
+  },
+  groupBannerClose: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(251,246,234,0.08)',
+  },
+  groupOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.sm,
+    borderRadius: radius.md,
+    marginBottom: spacing.xs,
+  },
+  groupOptionActive: {
+    backgroundColor: colors.goldSoft,
+  },
+  groupOptionText: {
+    fontFamily: fonts.sansMedium,
+    fontSize: 14,
+    color: colors.inkSoft,
+  },
+  groupOptionTextActive: {
+    color: colors.emerald,
+    fontFamily: fonts.sansBold,
+  },
+  groupEmptyText: {
+    fontFamily: fonts.sans,
+    fontSize: 13,
+    color: colors.inkSoft,
+    lineHeight: 20,
+    paddingVertical: spacing.sm,
   },
   chipRow: {
     paddingHorizontal: spacing.lg,

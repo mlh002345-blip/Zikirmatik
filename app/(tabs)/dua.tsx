@@ -1,25 +1,47 @@
 import React, { useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, Share, StyleSheet, Text, View } from 'react-native';
+import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import Screen from '@/components/ui/Screen';
 import Card from '@/components/ui/Card';
 import ProgressBar from '@/components/ui/ProgressBar';
 import Button from '@/components/ui/Button';
+import GroupFormModal from '@/components/GroupFormModal';
+import JoinGroupModal from '@/components/JoinGroupModal';
 import { colors, fonts, radius, spacing } from '@/constants/theme';
-import { duaRequests as initialRequests, dhikrGroups } from '@/constants/community';
+import { duaRequests as initialRequests } from '@/constants/community';
+import { dhikrPresets } from '@/constants/dhikr';
+import { useNiyetStore } from '@/store/useNiyetStore';
 
 type Tab = 'dualar' | 'gruplar';
 
 export default function DuaScreen() {
+  const router = useRouter();
   const [tab, setTab] = useState<Tab>('dualar');
   const [requests, setRequests] = useState(initialRequests);
+  const [createVisible, setCreateVisible] = useState(false);
+  const [joinVisible, setJoinVisible] = useState(false);
+
+  const groups = useNiyetStore((s) => s.groups);
+  const setActiveGroup = useNiyetStore((s) => s.setActiveGroup);
 
   const toggleJoin = (id: string) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
     setRequests((prev) =>
       prev.map((r) => (r.id === id ? { ...r, joined: !r.joined, duaCount: r.duaCount + (r.joined ? -1 : 1) } : r))
     );
+  };
+
+  const openGroupZikir = (groupId: string) => {
+    setActiveGroup(groupId);
+    router.push('/(tabs)/zikirmatik');
+  };
+
+  const shareInvite = (groupName: string, code: string) => {
+    Share.share({
+      message: `Niyet uygulamasında "${groupName}" grubuma katıl, beraber zikir çekelim. Davet kodu: ${code}`,
+    }).catch(() => {});
   };
 
   return (
@@ -74,34 +96,74 @@ export default function DuaScreen() {
         </>
       ) : (
         <>
-          <Button label="Yeni Grup Oluştur" onPress={() => {}} style={{ marginBottom: spacing.md }} />
-          {dhikrGroups.map((g) => {
-            const progress = g.targetProgress / g.targetTotal;
+          <View style={styles.groupActionsRow}>
+            <Button label="Yeni Grup Oluştur" onPress={() => setCreateVisible(true)} style={{ flex: 1 }} />
+            <Button label="Gruba Katıl" onPress={() => setJoinVisible(true)} variant="secondary" style={{ flex: 1 }} />
+          </View>
+
+          {groups.map((g) => {
+            const progress = g.progress / g.target;
+            const dhikr = dhikrPresets.find((d) => d.id === g.dhikrId);
+            const isMember = g.members.some((m) => m.isYou);
+            const topMembers = [...g.members].sort((a, b) => b.contribution - a.contribution).slice(0, 4);
+
             return (
               <Card key={g.id} style={styles.groupCard}>
                 <View style={styles.groupHeaderRow}>
                   <Text style={styles.groupName}>{g.name}</Text>
-                  <Text style={styles.groupMembers}>{g.memberCount} kişi</Text>
+                  <Text style={styles.groupMembers}>{g.members.length} kişi</Text>
                 </View>
-                <Text style={styles.groupTarget}>{g.targetLabel}</Text>
+                <Text style={styles.groupTarget}>
+                  {g.target.toLocaleString('tr-TR')} {dhikr?.transliteration ?? ''}
+                </Text>
                 <ProgressBar progress={progress} />
                 <View style={styles.groupFooterRow}>
                   <Text style={styles.groupCount}>
-                    {g.targetProgress.toLocaleString('tr-TR')} / {g.targetTotal.toLocaleString('tr-TR')}
+                    {g.progress.toLocaleString('tr-TR')} / {g.target.toLocaleString('tr-TR')}
                   </Text>
                   <View style={styles.avatarStack}>
-                    {g.avatarInitials.map((a, i) => (
-                      <View key={i} style={[styles.miniAvatar, { marginLeft: i === 0 ? 0 : -8 }]}>
-                        <Text style={styles.miniAvatarText}>{a}</Text>
+                    {topMembers.map((m, i) => (
+                      <View key={m.id} style={[styles.miniAvatar, { marginLeft: i === 0 ? 0 : -8 }, m.isYou && styles.miniAvatarYou]}>
+                        <Text style={styles.miniAvatarText}>{m.initial}</Text>
                       </View>
                     ))}
+                    {g.members.length > topMembers.length ? (
+                      <View style={[styles.miniAvatar, { marginLeft: -8 }]}>
+                        <Text style={styles.miniAvatarText}>+{g.members.length - topMembers.length}</Text>
+                      </View>
+                    ) : null}
                   </View>
+                </View>
+
+                <View style={styles.contributorsRow}>
+                  {topMembers.map((m) => (
+                    <Text key={m.id} style={styles.contributorText}>
+                      {m.isYou ? 'Sen' : m.name} · {m.contribution.toLocaleString('tr-TR')}
+                    </Text>
+                  ))}
+                </View>
+
+                <View style={styles.groupCardActions}>
+                  {isMember ? (
+                    <>
+                      <Button label="Zikir Çek" onPress={() => openGroupZikir(g.id)} style={{ flex: 1 }} />
+                      <Pressable onPress={() => shareInvite(g.name, g.inviteCode)} style={styles.codeBtn}>
+                        <Ionicons name="share-social-outline" size={14} color={colors.emeraldSoft} />
+                        <Text style={styles.codeBtnText}>{g.inviteCode}</Text>
+                      </Pressable>
+                    </>
+                  ) : (
+                    <Button label="Katılmak için kodu gir" onPress={() => setJoinVisible(true)} variant="ghost" style={{ flex: 1 }} />
+                  )}
                 </View>
               </Card>
             );
           })}
         </>
       )}
+
+      <GroupFormModal visible={createVisible} onClose={() => setCreateVisible(false)} />
+      <JoinGroupModal visible={joinVisible} onClose={() => setJoinVisible(false)} />
     </Screen>
   );
 }
@@ -223,6 +285,11 @@ const styles = StyleSheet.create({
   joinTextActive: {
     color: colors.emeraldDeep,
   },
+  groupActionsRow: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+    marginBottom: spacing.md,
+  },
   groupCard: {
     marginBottom: spacing.sm,
     gap: spacing.xs,
@@ -271,9 +338,46 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: colors.ivory,
   },
+  miniAvatarYou: {
+    backgroundColor: colors.gold,
+  },
   miniAvatarText: {
     fontFamily: fonts.sansBold,
     fontSize: 10,
     color: colors.goldBright,
+  },
+  contributorsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.xs,
+    marginTop: spacing.xs,
+  },
+  contributorText: {
+    fontFamily: fonts.sansMedium,
+    fontSize: 11,
+    color: colors.mist,
+  },
+  groupCardActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    marginTop: spacing.sm,
+  },
+  codeBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.sm,
+    borderRadius: radius.pill,
+    borderWidth: 1,
+    borderColor: colors.hairline,
+    backgroundColor: colors.creamDeep,
+  },
+  codeBtnText: {
+    fontFamily: fonts.sansBold,
+    fontSize: 12,
+    color: colors.emeraldSoft,
+    letterSpacing: 0.5,
   },
 });
