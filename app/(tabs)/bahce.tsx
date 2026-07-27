@@ -17,15 +17,24 @@ export default function HomeScreen() {
   const streakDays = useNiyetStore((s) => s.streakDays);
   const dailyWirds = useNiyetStore((s) => s.dailyWirds);
   const totalLifetimeCount = useNiyetStore((s) => s.totalLifetimeCount);
+  const groups = useNiyetStore((s) => s.groups);
+  const setActiveGroup = useNiyetStore((s) => s.setActiveGroup);
 
   const completedWirds = dailyWirds.filter((w) => w.progress >= w.target).length;
+  const myGroups = groups.filter((g) => g.members.some((m) => m.isYou));
+  const featuredGroup = myGroups[0] ?? null;
+
+  const goToGroupZikir = (groupId: string) => {
+    setActiveGroup(groupId);
+    router.push('/(tabs)/zikirmatik');
+  };
 
   return (
     <Screen dark edges={['top']} contentStyle={styles.content}>
       <View style={styles.headerRow}>
         <View>
           <Text style={styles.greetingSmall}>Esselamu aleyküm</Text>
-          <Text style={styles.greetingName}>Huzurlu bir gün, kardeşim.</Text>
+          <Text style={styles.greetingName}>Kalbin bugün de zikirle huzur bulsun.</Text>
         </View>
         <Pressable onPress={() => router.push('/profil')} style={styles.avatar}>
           <Text style={styles.avatarText}>N</Text>
@@ -55,12 +64,43 @@ export default function HomeScreen() {
           <Text style={styles.statNumber}>
             {completedWirds}/{dailyWirds.length}
           </Text>
-          <Text style={styles.statLabel}>Bugünkü Vird</Text>
+          <Text style={styles.statLabel}>Bugünkü Zikir</Text>
         </Card>
       </View>
 
+      <Card dark style={styles.familyCard}>
+        <View style={styles.familyHeaderRow}>
+          <Ionicons name="people" size={18} color={colors.goldBright} />
+          <Text style={styles.familyTitle}>Birlikte Zikir</Text>
+        </View>
+        {featuredGroup ? (
+          <>
+            <Text style={styles.familySub}>
+              {featuredGroup.name} · {featuredGroup.members.length} kişi
+            </Text>
+            <ProgressBar progress={featuredGroup.progress / featuredGroup.target} trackColor="rgba(251,246,234,0.1)" />
+            <Text style={styles.familyCount}>
+              {featuredGroup.progress.toLocaleString('tr-TR')} / {featuredGroup.target.toLocaleString('tr-TR')}
+            </Text>
+            <Button label="Ailenle Zikir Çek" onPress={() => goToGroupZikir(featuredGroup.id)} style={{ marginTop: spacing.sm }} />
+          </>
+        ) : (
+          <>
+            <Text style={styles.familySub}>
+              Ailen veya arkadaşlarınla ortak bir niyete yürü; her zikrin hep beraber Rabbine yükselsin.
+            </Text>
+            <Button
+              label="Aile Grubu Kur"
+              onPress={() => router.push({ pathname: '/(tabs)/dua', params: { tab: 'gruplar' } })}
+              variant="secondary"
+              style={{ marginTop: spacing.sm }}
+            />
+          </>
+        )}
+      </Card>
+
       <View style={styles.sectionHeaderRow}>
-        <Text style={styles.sectionTitle}>Günlük Virdlerin</Text>
+        <Text style={styles.sectionTitle}>Bugünkü Zikirlerin</Text>
         <Text style={styles.sectionAction} onPress={() => router.push('/(tabs)/analiz')}>
           Tümü
         </Text>
@@ -192,6 +232,31 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: colors.mist,
     marginTop: 4,
+  },
+  familyCard: {
+    gap: spacing.xs,
+  },
+  familyHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  familyTitle: {
+    fontFamily: fonts.serif,
+    fontSize: 17,
+    color: colors.cream,
+  },
+  familySub: {
+    fontFamily: fonts.sans,
+    fontSize: 13,
+    color: colors.mist,
+    lineHeight: 19,
+    marginBottom: 2,
+  },
+  familyCount: {
+    fontFamily: fonts.sansMedium,
+    fontSize: 12,
+    color: colors.mist,
   },
   sectionHeaderRow: {
     flexDirection: 'row',

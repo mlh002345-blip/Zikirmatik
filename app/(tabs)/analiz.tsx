@@ -56,7 +56,7 @@ export default function AnalizScreen() {
       </Card>
 
       <Card style={styles.section}>
-        <Text style={styles.sectionTitle}>Bugünkü Virdler</Text>
+        <Text style={styles.sectionTitle}>Bugünkü Zikirler</Text>
         {dailyWirds.map((w) => {
           const dhikr = dhikrPresets.find((d) => d.id === w.dhikrId);
           return (

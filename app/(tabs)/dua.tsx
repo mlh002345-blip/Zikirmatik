@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Pressable, Share, StyleSheet, Text, View } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import Screen from '@/components/ui/Screen';
@@ -18,7 +18,8 @@ type Tab = 'dualar' | 'gruplar';
 
 export default function DuaScreen() {
   const router = useRouter();
-  const [tab, setTab] = useState<Tab>('dualar');
+  const { tab: tabParam } = useLocalSearchParams<{ tab?: string }>();
+  const [tab, setTab] = useState<Tab>(tabParam === 'gruplar' ? 'gruplar' : 'dualar');
   const [requests, setRequests] = useState(initialRequests);
   const [createVisible, setCreateVisible] = useState(false);
   const [joinVisible, setJoinVisible] = useState(false);
@@ -50,11 +51,11 @@ export default function DuaScreen() {
       <Text style={styles.subtitle}>Rekabetsiz, yardımlaşma üzerine kurulu bir topluluk.</Text>
 
       <View style={styles.tabRow}>
+        <Pressable onPress={() => setTab('gruplar')} style={[styles.tabBtn, tab === 'gruplar' && styles.tabBtnActive]}>
+          <Text style={[styles.tabText, tab === 'gruplar' && styles.tabTextActive]}>Aile ve Grup Zikri</Text>
+        </Pressable>
         <Pressable onPress={() => setTab('dualar')} style={[styles.tabBtn, tab === 'dualar' && styles.tabBtnActive]}>
           <Text style={[styles.tabText, tab === 'dualar' && styles.tabTextActive]}>Dua Talepleri</Text>
-        </Pressable>
-        <Pressable onPress={() => setTab('gruplar')} style={[styles.tabBtn, tab === 'gruplar' && styles.tabBtnActive]}>
-          <Text style={[styles.tabText, tab === 'gruplar' && styles.tabTextActive]}>Grup Zikirleri</Text>
         </Pressable>
       </View>
 

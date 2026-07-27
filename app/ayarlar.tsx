@@ -50,7 +50,7 @@ export default function AyarlarScreen() {
       <Card noPadding style={styles.card}>
         <SettingsRow
           icon="notifications-outline"
-          label="Günlük Vird Hatırlatıcı"
+          label="Günlük Zikir Hatırlatıcı"
           right={<Switch value={dailyReminder} onValueChange={setDailyReminder} trackColor={{ true: colors.gold }} />}
         />
         <View style={styles.divider} />

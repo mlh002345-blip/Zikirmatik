@@ -18,7 +18,7 @@ const SLIDES = [
   {
     icon: 'leaf-outline' as const,
     title: 'Manevi Bahçe',
-    body: 'Virdlerin çekildikçe bahçen yeşerir, çiçekler açar. Maneviyatının aynası, cebinde taşıdığın yaşayan bir ekosistem.',
+    body: 'Zikrin arttıkça bahçen yeşerir, çiçekler açar. Maneviyatının aynası, cebinde taşıdığın yaşayan bir ekosistem.',
   },
   {
     icon: 'people-outline' as const,

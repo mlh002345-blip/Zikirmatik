@@ -137,7 +137,7 @@ export default function ZikirmatikScreen() {
           <View style={[styles.progressFill, { width: `${Math.min(1, progress) * 100}%` }]} />
         </View>
 
-        <Text style={styles.hint}>Odaklan, nefes al, dokun.</Text>
+        <Text style={styles.hint}>"Kalpler ancak Allah'ı anmakla mutmain olur." — Ra'd, 28</Text>
       </View>
 
       <View style={styles.targetRow}>
