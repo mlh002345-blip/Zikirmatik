@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useSession } from '@/hooks/useSession';
 
@@ -49,6 +49,10 @@ export function useDuaRequests() {
   const [requests, setRequests] = useState<DuaRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const mounted = useRef(true);
+  // Bu ekran ve arka planda yüklü kalan modaller aynı anda bu hook'u
+  // çağırabiliyor; her çağrı kendi benzersiz kanal adını kullanmalı, yoksa
+  // Supabase Realtime "cannot add callbacks after subscribe()" hatası verir.
+  const instanceId = useId();
 
   const fetchRequests = useCallback(async () => {
     const { data: requestRows, error } = await supabase
@@ -97,7 +101,7 @@ export function useDuaRequests() {
     fetchRequests();
 
     const channel = supabase
-      .channel('dua-requests-changes')
+      .channel(`dua-requests-changes-${instanceId}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'dua_requests' }, () => fetchRequests())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'dua_amins' }, () => fetchRequests())
       .subscribe();

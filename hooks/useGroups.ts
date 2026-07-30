@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useSession } from '@/hooks/useSession';
 
@@ -50,6 +50,10 @@ export function useGroups() {
   const [groups, setGroups] = useState<DhikrGroup[]>([]);
   const [loading, setLoading] = useState(true);
   const mounted = useRef(true);
+  // Ekran ve arka planda yüklü kalan modaller aynı anda bu hook'u
+  // çağırabiliyor; her çağrı kendi benzersiz kanal adını kullanmalı, yoksa
+  // Supabase Realtime "cannot add callbacks after subscribe()" hatası verir.
+  const instanceId = useId();
 
   const fetchGroups = useCallback(async () => {
     if (!userId) {
@@ -116,7 +120,7 @@ export function useGroups() {
     };
 
     const channel = supabase
-      .channel(`groups-${userId}`)
+      .channel(`groups-${userId}-${instanceId}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'group_members' }, () => fetchGroups())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'dhikr_groups' }, () => fetchGroups())
       .subscribe();
