@@ -8,9 +8,23 @@ interface GardenSceneProps {
   height?: number;
 }
 
-const AnimatedCircle = Animated.createAnimatedComponent(Circle);
-const AnimatedG = Animated.createAnimatedComponent(G);
-const AnimatedPath = Animated.createAnimatedComponent(Path);
+// Animated.createAnimatedComponent bileşene `collapsable` prop'unu ekliyor;
+// react-native-svg web'de bilinmeyen prop'ları doğrudan DOM'a geçirdiği için
+// React "Received `false` for a non-boolean attribute" uyarısı basıyor ve bu
+// uyarı web'de ekranı kaplayan bir hata kutusu açarak dokunmaları engelliyor.
+// Sarmalayıcılar bu prop'u SVG'ye ulaşmadan süzer.
+function withoutCollapsable<P extends object>(Component: React.ComponentType<P>) {
+  return React.forwardRef<unknown, P & { collapsable?: boolean }>(function Filtered(
+    { collapsable, ...props },
+    ref
+  ) {
+    return <Component ref={ref as never} {...(props as P)} />;
+  });
+}
+
+const AnimatedCircle = Animated.createAnimatedComponent(withoutCollapsable(Circle));
+const AnimatedG = Animated.createAnimatedComponent(withoutCollapsable(G));
+const AnimatedPath = Animated.createAnimatedComponent(withoutCollapsable(Path));
 
 type Pt = { x: number; y: number };
 
