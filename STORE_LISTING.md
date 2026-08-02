@@ -78,12 +78,17 @@ isterseniz betikteki yarıçap/renk değerlerini düzenleyip yeniden çalıştı
 | `assets/favicon.png` | 48×48 | ✅ Üretildi |
 | `store-assets/play-store-icon.png` | 512×512, 32-bit PNG | ✅ Üretildi — Play Console'a yüklenecek |
 | `store-assets/feature-graphic.png` | 1024×500 | ✅ Üretildi — Play Console'a yüklenecek |
-| Telefon ekran görüntüleri | min 2, JPEG/PNG, 16:9 veya 9:16 | ⚠️ **Eksik — cihazda alınmalı** |
+| `store-assets/screenshots/*.png` (5 adet) | 1080×1920, tam 9:16 | ✅ Üretildi |
 
-Ekran görüntüleri bu ortamda üretilemedi (headless; ekran görüntüsü alacak
-cihaz/emülatör veya tarayıcı erişimi yok). Öneri: `npx expo start` ile
-uygulamayı telefonunuzda Expo Go üzerinden açıp Zikirmatik, Bahçe, Galeri ve
-Dua Kardeşliği ekranlarından en az 2 (tercihen 4-6) görüntü alın.
+Ekran görüntüleri `scripts/capture-screenshots.js` ile alındı: kurulu Chrome
+headless sürülüp web sürümü 360×640 CSS @3x (= 1080×1920, tam 9:16) telefon
+görünümünde yakalanıyor. Kapsanan ekranlar: Zikirmatik, Bahçe, Motif Galerisi,
+Gelişim, Onboarding.
+
+Görüntülerde görünen ilerleme verisi (zikir sayısı, seri, motif ilerlemesi)
+betik tarafından yerel depoya yazılır — uygulamanın kullanımdaki halini
+göstermek için. Sahte topluluk/dua içeriği **üretilmez**; Dua Kardeşliği ekranı
+gerçek veri gerektirdiği için ekran görüntüsü setine dahil edilmedi.
 
 ## Veri güvenliği formu (Data safety) — yol gösterici
 

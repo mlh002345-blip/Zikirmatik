@@ -36,6 +36,7 @@ export default function OnboardingScreen() {
   const router = useRouter();
   const scrollRef = useRef<ScrollView>(null);
   const [index, setIndex] = useState(0);
+  const [pagerHeight, setPagerHeight] = useState(0);
 
   const handleScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
     const next = Math.round(e.nativeEvent.contentOffset.x / width);
@@ -60,9 +61,13 @@ export default function OnboardingScreen() {
           pagingEnabled
           showsHorizontalScrollIndicator={false}
           onMomentumScrollEnd={handleScroll}
+          // Yatay ScrollView'da slaytlar icerik yuksekliginde kalip yukari
+          // yapisiyor; icerigin dikeyde ortalanmasi icin pager'in olculen
+          // yuksekligini slayta veriyoruz.
+          onLayout={(e) => setPagerHeight(e.nativeEvent.layout.height)}
         >
           {SLIDES.map((slide) => (
-            <View key={slide.title} style={[styles.slide, { width }]}>
+            <View key={slide.title} style={[styles.slide, { width, height: pagerHeight || undefined }]}>
               <View style={styles.iconCircle}>
                 <Ionicons name={slide.icon} size={40} color={colors.goldBright} />
               </View>

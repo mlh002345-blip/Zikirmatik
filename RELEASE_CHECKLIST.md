@@ -32,6 +32,12 @@
       splash, favicon. Üreteç betik olarak repoda: `scripts/generate-icons.ps1`.
 - [x] Play Console grafikleri üretildi: `store-assets/play-store-icon.png`
       (512×512) ve `store-assets/feature-graphic.png` (1024×500).
+- [x] Play Store ekran görüntüleri alındı (`store-assets/screenshots/`, 5 adet,
+      1080×1920 tam 9:16) — `scripts/capture-screenshots.js` ile.
+- [x] Ekran görüntüsü alırken çıkan üç gerçek layout hatası düzeltildi (360dp
+      genişlikte, yaygın Android boyutu): Bahçe başlığı kırpılıyordu, Zikirmatik
+      ekranında ayet metni hedef butonlarının üzerine biniyordu, Onboarding
+      içeriği dikeyde ortalanmıyordu.
 - [x] Mağaza metinleri (`STORE_LISTING.md`) hazırlandı.
 
 ## Sizin (hesap sahibi olarak) yapmanız gereken adımlar

@@ -35,7 +35,7 @@ export default function HomeScreen() {
   return (
     <Screen dark edges={['top']} contentStyle={styles.content}>
       <View style={styles.headerRow}>
-        <View>
+        <View style={styles.greetingBlock}>
           <Text style={styles.greetingSmall}>Esselamu aleyküm</Text>
           <Text style={styles.greetingName}>Kalbin bugün de zikirle huzur bulsun.</Text>
         </View>
@@ -159,6 +159,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: spacing.xs,
+  },
+  // Dar ekranlarda (360dp) uzun selamlama metni avatarin altina tasip
+  // kirpiliyordu; blok esnek olmali, avatar sabit kalmali.
+  greetingBlock: {
+    flex: 1,
+    marginRight: spacing.sm,
   },
   greetingSmall: {
     fontFamily: fonts.sans,

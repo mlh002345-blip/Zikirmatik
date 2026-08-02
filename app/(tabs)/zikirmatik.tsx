@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import { Animated, Easing, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Animated, Easing, Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -31,6 +31,11 @@ export default function ZikirmatikScreen() {
   const scale = useRef(new Animated.Value(1)).current;
   const ringOpacity = useRef(new Animated.Value(0)).current;
   const [groupPickerVisible, setGroupPickerVisible] = React.useState(false);
+
+  // Kadran sabit 240 iken kisa ekranlarda (ornegin 360x640) ayet metni
+  // alttaki hedef butonlarinin uzerine tasiyordu; yuksekliğe gore kucult.
+  const { height: windowHeight } = useWindowDimensions();
+  const dialSize = Math.max(180, Math.min(DIAL_SIZE, Math.round(windowHeight * 0.34)));
 
   const dhikr = dhikrPresets.find((d) => d.id === selectedDhikrId) ?? dhikrPresets[0];
   const activeMotif = motifs.find((m) => m.id === activeMotifId) ?? motifs[0];
@@ -123,20 +128,29 @@ export default function ZikirmatikScreen() {
           <Animated.View
             style={[
               styles.ring,
+              { width: dialSize, height: dialSize, borderRadius: dialSize / 2 },
               { opacity: ringOpacity, transform: [{ scale: ringOpacity.interpolate({ inputRange: [0, 0.6], outputRange: [1, 1.25] }) }] },
             ]}
           />
           <Animated.View style={{ transform: [{ scale }] }}>
-            <LinearGradient colors={[colors.emeraldSoft, colors.emerald]} style={styles.dial}>
-              <View style={styles.dialInnerBorder}>
-                <Text style={styles.count}>{displayCount}</Text>
+            <LinearGradient
+              colors={[colors.emeraldSoft, colors.emerald]}
+              style={[styles.dial, { width: dialSize, height: dialSize, borderRadius: dialSize / 2 }]}
+            >
+              <View
+                style={[
+                  styles.dialInnerBorder,
+                  { width: dialSize - 14, height: dialSize - 14, borderRadius: (dialSize - 14) / 2 },
+                ]}
+              >
+                <Text style={[styles.count, { fontSize: Math.round(dialSize * 0.27) }]}>{displayCount}</Text>
                 <Text style={styles.countTarget}>/ {sessionTarget}</Text>
               </View>
             </LinearGradient>
           </Animated.View>
         </Pressable>
 
-        <View style={styles.progressTrack}>
+        <View style={[styles.progressTrack, { width: dialSize }]}>
           <View style={[styles.progressFill, { width: `${Math.min(1, progress) * 100}%` }]} />
         </View>
 
@@ -340,7 +354,7 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: colors.mist,
     marginTop: spacing.xs,
-    marginBottom: spacing.xl,
+    marginBottom: spacing.lg,
     textAlign: 'center',
   },
   counterWrap: {
@@ -391,7 +405,7 @@ const styles = StyleSheet.create({
     height: 4,
     borderRadius: 2,
     backgroundColor: 'rgba(251,246,234,0.1)',
-    marginTop: spacing.xl,
+    marginTop: spacing.lg,
     overflow: 'hidden',
   },
   progressFill: {
@@ -403,6 +417,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: colors.mist,
     marginTop: spacing.md,
+    textAlign: 'center',
   },
   targetRow: {
     flexDirection: 'row',
