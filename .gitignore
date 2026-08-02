@@ -43,3 +43,6 @@ google-service-account.json
 # generated native folders
 /ios
 /android
+
+# Yerel build ciktilari (APK/AAB) - repoya girmemeli
+builds/
