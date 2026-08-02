@@ -49,6 +49,13 @@
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "6842ae0d-a543-409a-b77f-c6f709114eeb"
+      }
+    },
+    "owner": "mlhozn"
   }
 }
