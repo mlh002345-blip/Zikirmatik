@@ -1,18 +1,21 @@
 import React, { useState } from 'react';
-import { ActivityIndicator, KeyboardAvoidingView, Platform, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Link, useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 import AuthField from '@/components/ui/AuthField';
 import Button from '@/components/ui/Button';
 import { colors, fonts, spacing } from '@/constants/theme';
 import { supabase, isSupabaseConfigured } from '@/lib/supabase';
+import { signInWithGoogle } from '@/lib/googleAuth';
 
 export default function LoginScreen() {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleLogin = async () => {
@@ -36,6 +39,25 @@ export default function LoginScreen() {
       return;
     }
     router.replace('/(tabs)/bahce');
+  };
+
+  const handleGoogleLogin = async () => {
+    if (!isSupabaseConfigured) {
+      setError('Supabase yapılandırılmadı. .env dosyasını kontrol edin (bkz. supabase/README.md).');
+      return;
+    }
+    setError(null);
+    setGoogleLoading(true);
+    try {
+      await signInWithGoogle();
+      if (Platform.OS !== 'web') {
+        router.replace('/(tabs)/bahce');
+      }
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Google ile giriş başarısız oldu.');
+    } finally {
+      setGoogleLoading(false);
+    }
   };
 
   return (
@@ -82,6 +104,21 @@ export default function LoginScreen() {
                 style={{ marginTop: spacing.md }}
               />
               {loading ? <ActivityIndicator color={colors.gold} style={{ marginTop: spacing.sm }} /> : null}
+
+              <View style={styles.dividerRow}>
+                <View style={styles.dividerLine} />
+                <Text style={styles.dividerText}>veya</Text>
+                <View style={styles.dividerLine} />
+              </View>
+
+              <Pressable
+                onPress={handleGoogleLogin}
+                disabled={googleLoading}
+                style={({ pressed }) => [styles.googleBtn, { opacity: pressed ? 0.8 : googleLoading ? 0.6 : 1 }]}
+              >
+                <Ionicons name="logo-google" size={18} color={colors.emeraldDeep} />
+                <Text style={styles.googleLabel}>{googleLoading ? '...' : 'Google ile Devam Et'}</Text>
+              </Pressable>
 
               <View style={styles.registerRow}>
                 <Text style={styles.registerText}>Hesabın yok mu?</Text>
@@ -131,6 +168,37 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: colors.danger,
     marginBottom: spacing.sm,
+  },
+  dividerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    marginTop: spacing.lg,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: 'rgba(251,246,234,0.15)',
+  },
+  dividerText: {
+    fontFamily: fonts.sans,
+    fontSize: 12,
+    color: colors.mist,
+  },
+  googleBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.xs,
+    backgroundColor: colors.cream,
+    borderRadius: 999,
+    paddingVertical: spacing.md,
+    marginTop: spacing.lg,
+  },
+  googleLabel: {
+    fontFamily: fonts.sansBold,
+    fontSize: 15,
+    color: colors.emeraldDeep,
   },
   registerRow: {
     flexDirection: 'row',
