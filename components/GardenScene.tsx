@@ -84,10 +84,10 @@ function FlowerHead({
 }) {
   const d = petalPath(3.6, 1.4);
   return (
-    <G transform={`translate(${x} ${y}) scale(${scale})`} opacity={opacity}>
+    <G translateX={x} translateY={y} scale={scale} opacity={opacity}>
       <Path d="M0,0 L0,3" stroke="#3F6B4E" strokeWidth={0.5} />
       {Array.from({ length: 5 }).map((_, i) => (
-        <G key={i} transform={`rotate(${(i / 5) * 360})`}>
+        <G key={i} rotation={(i / 5) * 360}>
           <Path d={d} fill={color} />
         </G>
       ))}
@@ -98,9 +98,9 @@ function FlowerHead({
 
 function Bush({ x, y, r, opacity = 1 }: { x: number; y: number; r: number; opacity?: number }) {
   return (
-    <G transform={`translate(${x} ${y})`} opacity={opacity}>
+    <G translateX={x} translateY={y} opacity={opacity}>
       <Path d={cloudPath(r, 0.78)} fill="url(#bushGrad)" />
-      <G transform={`translate(${-r * 0.28} ${-r * 0.32})`}>
+      <G translateX={-r * 0.28} translateY={-r * 0.32}>
         <Path d={cloudPath(r * 0.42, 0.78)} fill="#8FD3A8" opacity={0.28} />
       </G>
     </G>
@@ -109,7 +109,7 @@ function Bush({ x, y, r, opacity = 1 }: { x: number; y: number; r: number; opaci
 
 function GrassTuft({ x, y, scale = 1, opacity = 1 }: { x: number; y: number; scale?: number; opacity?: number }) {
   return (
-    <G transform={`translate(${x} ${y}) scale(${scale})`} opacity={opacity}>
+    <G translateX={x} translateY={y} scale={scale} opacity={opacity}>
       <Path d="M0,0 Q-2,-5 -3.4,-8.2" stroke="#3E7A52" strokeWidth={0.8} fill="none" strokeLinecap="round" />
       <Path d="M0,0 Q0,-6.5 0.2,-10" stroke="#4E8F62" strokeWidth={0.8} fill="none" strokeLinecap="round" />
       <Path d="M0,0 Q2,-5 3.4,-8.2" stroke="#3E7A52" strokeWidth={0.8} fill="none" strokeLinecap="round" />
@@ -256,8 +256,11 @@ export default function GardenScene({ level, height = 260 }: GardenSceneProps) {
   const trunkTopY = canopyCy + canopyR * 0.4;
   const trunkBaseY = 214;
 
-  const swayTransform = sway.interpolate({ inputRange: [0, 1], outputRange: ['translate(-3,0)', 'translate(3,0)'] });
-  const breatheTransform = breathe.interpolate({ inputRange: [0, 1], outputRange: ['scale(1)', 'scale(1.025)'] });
+  // SVG transform string'i ("translate(3,0)") yeni React Native mimarisinde
+  // (Fabric) ClassCastException ile uygulamayi cokertiyor; RNSVG'nin sayisal
+  // translateX/scale prop'lari kullanilmali.
+  const swayX = sway.interpolate({ inputRange: [0, 1], outputRange: [-3, 3] });
+  const breatheScale = breathe.interpolate({ inputRange: [0, 1], outputRange: [1, 1.025] });
   const haloOpacity = haloPulse.interpolate({ inputRange: [0, 1], outputRange: [0.25 + growth * 0.3, 0.38 + growth * 0.35] });
   const haloR = 26 + growth * 46;
 
@@ -361,14 +364,14 @@ export default function GardenScene({ level, height = 260 }: GardenSceneProps) {
           strokeLinecap="round"
         />
 
-        <G transform={`translate(${canopyCx} ${canopyCy})`}>
-          <AnimatedG transform={swayTransform}>
-            <AnimatedG transform={breatheTransform}>
+        <G translateX={canopyCx} translateY={canopyCy}>
+          <AnimatedG translateX={swayX}>
+            <AnimatedG scale={breatheScale}>
               <Path d={canopyOutline} fill="url(#canopyGrad)" />
-              <G transform={`translate(${-canopyR * 0.26} ${-canopyR * 0.3})`}>
+              <G translateX={-canopyR * 0.26} translateY={-canopyR * 0.3}>
                 <Path d={canopyHighlight} fill="#7FCB9E" opacity={0.3} />
               </G>
-              <G transform={`translate(${canopyR * 0.22} ${canopyR * 0.26})`}>
+              <G translateX={canopyR * 0.22} translateY={canopyR * 0.26}>
                 <Path d={canopyShadow} fill="#0A2A20" opacity={0.26} />
               </G>
               {treeBlossoms.map((b) =>
