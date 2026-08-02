@@ -27,6 +27,9 @@ Uygulama, hesap oluşturma ve topluluk özelliklerinin çalışması için aşa�
   tepkileri. Dua talepleri ve grup zikirleri, uygulamanın doğası gereği diğer giriş yapmış
   kullanıcılar tarafından görülebilir.
 
+- **Şikayet verisi:** Bir dua talebini uygunsuz bulup şikayet ederseniz, şikayetiniz ve
+  hesabınız yalnızca moderasyon amacıyla kaydedilir; diğer kullanıcılara gösterilmez.
+
 Uygulama; reklam, üçüncü taraf analiz/izleme SDK'sı veya konum verisi **toplamaz**.
 
 ## 3. Verilerin Kullanım Amacı

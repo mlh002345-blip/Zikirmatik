@@ -18,3 +18,12 @@
 Bu adımlardan sonra kayıt/giriş, grup zikirleri ve dua talepleri gerçek, paylaşımlı bir
 veritabanı üzerinden çalışır — aynı gruba farklı telefonlardan katılan kişiler birbirinin
 katkısını anlık olarak görür.
+
+## Sonradan eklenen: içerik şikayeti / kendi dua talebini silme (2026-08-02)
+
+Projeyi daha önce kurduysanız (yani `schema.sql`'i zaten bir kez çalıştırdıysanız),
+SQL Editor'de bu kez yalnızca `migration_2026-08-02_moderation.sql` dosyasının içeriğini
+çalıştırmanız yeterli. Bu, Google Play'in kullanıcı içeriği (UGC) politikası gereği
+gereken "uygunsuz içeriği bildirme" ve "kendi paylaşımını silme" özelliklerini ekler.
+Yeni bir proje kuruyorsanız `schema.sql` bu değişiklikleri zaten içeriyor, ayrıca
+çalıştırmanıza gerek yok.

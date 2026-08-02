@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Pressable, Share, StyleSheet, Text, View } from 'react-native';
+import { Alert, Pressable, Share, StyleSheet, Text, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
@@ -28,7 +28,28 @@ export default function DuaScreen() {
 
   const setActiveGroup = useNiyetStore((s) => s.setActiveGroup);
   const { groups } = useGroups();
-  const { requests, toggleAmin } = useDuaRequests();
+  const { requests, toggleAmin, deleteRequest, reportRequest } = useDuaRequests();
+
+  const openDuaOptions = (id: string, isOwn: boolean) => {
+    if (isOwn) {
+      Alert.alert('Dua Talebin', undefined, [
+        { text: 'Vazgeç', style: 'cancel' },
+        { text: 'Sil', style: 'destructive', onPress: () => deleteRequest(id) },
+      ]);
+    } else {
+      Alert.alert('Bu talebi bildir', 'Uygunsuz veya yanıltıcı içerik mi?', [
+        { text: 'Vazgeç', style: 'cancel' },
+        {
+          text: 'Şikayet Et',
+          style: 'destructive',
+          onPress: async () => {
+            const res = await reportRequest(id);
+            if (res.success) Alert.alert('Teşekkürler', 'Şikayetiniz iletildi.');
+          },
+        },
+      ]);
+    }
+  };
 
   const openGroupZikir = (groupId: string, dhikrId: string) => {
     setActiveGroup(groupId, dhikrId);
@@ -73,6 +94,9 @@ export default function DuaScreen() {
                       {r.category} · {r.timeAgo}
                     </Text>
                   </View>
+                  <Pressable onPress={() => openDuaOptions(r.id, r.isOwn)} hitSlop={8} style={styles.duaMoreBtn}>
+                    <Ionicons name="ellipsis-horizontal" size={18} color={colors.mist} />
+                  </Pressable>
                 </View>
                 <Text style={styles.duaText}>{r.text}</Text>
                 <View style={styles.duaFooter}>
@@ -246,6 +270,9 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: colors.mist,
     marginTop: 1,
+  },
+  duaMoreBtn: {
+    padding: 4,
   },
   duaText: {
     fontFamily: fonts.sans,

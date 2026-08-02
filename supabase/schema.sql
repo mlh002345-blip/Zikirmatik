@@ -215,5 +215,33 @@ create policy "Kullanıcı kendi amin'ini kaldırabilir"
   to authenticated
   using (auth.uid() = user_id);
 
+create policy "Kullanıcı kendi dua talebini silebilir"
+  on public.dua_requests for delete
+  to authenticated
+  using (auth.uid() = user_id);
+
 alter publication supabase_realtime add table public.dua_requests;
 alter publication supabase_realtime add table public.dua_amins;
+
+-- ============================================================
+-- İÇERİK ŞİKAYETLERİ (Play Store UGC politikası için gerekli:
+-- kullanıcıların uygunsuz içeriği bildirebilmesi)
+-- ============================================================
+
+create table public.content_reports (
+  id uuid primary key default gen_random_uuid(),
+  reporter_id uuid not null references auth.users (id) on delete cascade,
+  request_id uuid not null references public.dua_requests (id) on delete cascade,
+  reason text,
+  created_at timestamptz not null default now()
+);
+
+alter table public.content_reports enable row level security;
+
+-- Şikayetler yalnızca oluşturulabilir; okuma politikası kasıtlı olarak
+-- yok — şikayetler yalnızca proje sahibinin Supabase panelinden görmesi
+-- içindir, diğer kullanıcılara açık değildir.
+create policy "Kullanıcı şikayet oluşturabilir"
+  on public.content_reports for insert
+  to authenticated
+  with check (auth.uid() = reporter_id);

@@ -17,6 +17,7 @@ export interface DuaRequest {
   duaCount: number;
   timeAgo: string;
   joined: boolean;
+  isOwn: boolean;
 }
 
 interface RequestRow {
@@ -87,6 +88,7 @@ export function useDuaRequests() {
       duaCount: countByRequest.get(r.id) ?? 0,
       timeAgo: timeAgo(r.created_at),
       joined: joinedByRequest.has(r.id),
+      isOwn: r.user_id === userId,
     }));
 
     if (mounted.current) {
@@ -150,5 +152,31 @@ export function useDuaRequests() {
     [userId]
   );
 
-  return { requests, loading, createRequest, toggleAmin };
+  const deleteRequest = useCallback(
+    async (requestId: string): Promise<{ success: boolean; error?: string }> => {
+      if (!userId) return { success: false, error: 'Giriş yapmalısın.' };
+      setRequests((prev) => prev.filter((r) => r.id !== requestId));
+      const { error } = await supabase.from('dua_requests').delete().eq('id', requestId).eq('user_id', userId);
+      if (error) {
+        await fetchRequests();
+        return { success: false, error: error.message };
+      }
+      return { success: true };
+    },
+    [userId, fetchRequests]
+  );
+
+  const reportRequest = useCallback(
+    async (requestId: string, reason?: string): Promise<{ success: boolean; error?: string }> => {
+      if (!userId) return { success: false, error: 'Giriş yapmalısın.' };
+      const { error } = await supabase
+        .from('content_reports')
+        .insert({ reporter_id: userId, request_id: requestId, reason: reason ?? null });
+      if (error) return { success: false, error: error.message };
+      return { success: true };
+    },
+    [userId]
+  );
+
+  return { requests, loading, createRequest, toggleAmin, deleteRequest, reportRequest };
 }
