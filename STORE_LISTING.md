@@ -62,18 +62,28 @@ https://github.com/mlh002345-blip/Zikirmatik/blob/claude/niyet-zikirmatik-design
 
 ## Grafik varlıkları — durum
 
+Tüm ikonlar `scripts/generate-icons.ps1` ile üretildi. Marka işareti,
+uygulamanın kendi `MotifPattern` bileşenindeki **star8** geometrisinin
+(8 köşeli Selçuk yıldızı) birebir aynısı — zümrüt zemin (`#0A2B20`→`#285943`)
+üzerinde altın nur gradyanı (`#C9A24B`→`#E8C97A`→`#FFF6DC`). Biçimi değiştirmek
+isterseniz betikteki yarıçap/renk değerlerini düzenleyip yeniden çalıştırın.
+
 | Varlık | Gereken boyut | Durum |
 |---|---|---|
-| Uygulama simgesi (adaptive icon) | 512×512 (min) | Mevcut (`assets/android-icon-foreground.png` vb.) |
-| Play Console yüksek çözünürlüklü simge | 512×512, 32-bit PNG | **Eksik — Play Console'a ayrıca yüklenmeli** |
-| Öne çıkan görsel (feature graphic) | 1024×500 | **Eksik — tasarlanmalı** |
-| Telefon ekran görüntüleri | min 2, JPEG/PNG, 16:9 veya 9:16 | **Eksik — cihaz/emülatörde alınmalı** |
+| `assets/icon.png` | 1024×1024 | ✅ Üretildi |
+| `assets/android-icon-foreground.png` | 512×512, saydam | ✅ Üretildi (adaptif güvenli alan içinde) |
+| `assets/android-icon-background.png` | 512×512 | ✅ Üretildi |
+| `assets/android-icon-monochrome.png` | 512×512, saydam siluet | ✅ Üretildi (temalı ikon) |
+| `assets/splash-icon.png` | 1024×1024, saydam | ✅ Üretildi |
+| `assets/favicon.png` | 48×48 | ✅ Üretildi |
+| `store-assets/play-store-icon.png` | 512×512, 32-bit PNG | ✅ Üretildi — Play Console'a yüklenecek |
+| `store-assets/feature-graphic.png` | 1024×500 | ✅ Üretildi — Play Console'a yüklenecek |
+| Telefon ekran görüntüleri | min 2, JPEG/PNG, 16:9 veya 9:16 | ⚠️ **Eksik — cihazda alınmalı** |
 
-Bu üç grafik varlığı bu ortamda üretilemedi (headless ortamda ekran görüntüsü
-alacak bir cihaz/emülatör veya tarayıcı erişimi yok). Öneri: `npx expo start`
-ile uygulamayı bir telefonda (Expo Go) açıp gerçek ekran görüntüleri alın; öne
-çıkan görsel için `assets/icon.png` ve `#0F3D2E` zümrüt yeşili zemin rengi
-temel alınarak basit bir tasarım yeterlidir.
+Ekran görüntüleri bu ortamda üretilemedi (headless; ekran görüntüsü alacak
+cihaz/emülatör veya tarayıcı erişimi yok). Öneri: `npx expo start` ile
+uygulamayı telefonunuzda Expo Go üzerinden açıp Zikirmatik, Bahçe, Galeri ve
+Dua Kardeşliği ekranlarından en az 2 (tercihen 4-6) görüntü alın.
 
 ## Veri güvenliği formu (Data safety) — yol gösterici
 

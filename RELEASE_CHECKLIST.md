@@ -24,6 +24,14 @@
 - [x] Ayarlar ekranındaki işlevsiz (hiçbir şey yapmayan) butonlara "yakında"
       geri bildirimi eklendi — Play Store incelemesinde "bozuk buton" izlenimi
       vermesin diye.
+- [x] **Gerçek marka ikonları üretildi.** Proje, Expo şablonunun varsayılan mavi
+      chevron ikonuyla ve kareli-kağıt splash görseliyle duruyordu — bu haliyle
+      mağazaya çıkmak mümkün değildi. Uygulamanın kendi `MotifPattern`
+      bileşenindeki **star8** (8 köşeli Selçuk yıldızı) geometrisinden türetilen
+      ikon seti üretildi: uygulama simgesi, adaptif ikon (ön/arka/monokrom),
+      splash, favicon. Üreteç betik olarak repoda: `scripts/generate-icons.ps1`.
+- [x] Play Console grafikleri üretildi: `store-assets/play-store-icon.png`
+      (512×512) ve `store-assets/feature-graphic.png` (1024×500).
 - [x] Mağaza metinleri (`STORE_LISTING.md`) hazırlandı.
 
 ## Sizin (hesap sahibi olarak) yapmanız gereken adımlar
@@ -56,8 +64,9 @@ zaten güvenli/mümkün değil:
      npx eas submit --platform android --profile production
      ```
 7. **Mağaza listelemesini doldurun**: `STORE_LISTING.md` içindeki hazır
-   metinleri kopyalayın; eksik olan üç grafiği (yüksek çözünürlüklü simge,
-   öne çıkan görsel, ekran görüntüleri) hazırlayıp yükleyin.
+   metinleri kopyalayın; `store-assets/` klasöründeki simge ve öne çıkan
+   görseli yükleyin. Geriye tek eksik **ekran görüntüleri** kalıyor — bunları
+   telefonunuzda Expo Go ile uygulamayı açıp almanız gerekiyor (en az 2 adet).
 8. **İçerik derecelendirmesi ve Veri güvenliği anketlerini** `STORE_LISTING.md`
    içindeki yol gösterici bölüme göre doldurun.
 9. İlk sürümü **Internal testing** track'inde yayınlayıp kendi hesabınızla
