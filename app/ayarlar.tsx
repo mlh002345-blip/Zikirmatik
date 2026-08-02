@@ -1,11 +1,18 @@
 import React, { useState } from 'react';
-import { Pressable, StyleSheet, Switch, Text, View } from 'react-native';
+import { Alert, Linking, Pressable, StyleSheet, Switch, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import Screen from '@/components/ui/Screen';
 import Card from '@/components/ui/Card';
 import { colors, fonts, radius, spacing } from '@/constants/theme';
 import { supabase } from '@/lib/supabase';
+
+const PRIVACY_POLICY_URL =
+  'https://github.com/mlh002345-blip/Zikirmatik/blob/claude/niyet-zikirmatik-design-xtervm/PRIVACY_POLICY.md';
+
+function showComingSoon() {
+  Alert.alert('Yakında', 'Bu özellik üzerinde çalışıyoruz, yakında burada olacak.');
+}
 
 function SettingsRow({
   icon,
@@ -70,18 +77,22 @@ export default function AyarlarScreen() {
 
       <Text style={styles.groupTitle}>Topluluk</Text>
       <Card noPadding style={styles.card}>
-        <SettingsRow icon="people-circle-outline" label="Grup Yönetimi" onPress={() => {}} />
+        <SettingsRow icon="people-circle-outline" label="Grup Yönetimi" onPress={showComingSoon} />
         <View style={styles.divider} />
-        <SettingsRow icon="person-add-outline" label="Arkadaş Davet Et" onPress={() => {}} />
+        <SettingsRow icon="person-add-outline" label="Arkadaş Davet Et" onPress={showComingSoon} />
       </Card>
 
       <Text style={styles.groupTitle}>Hesap</Text>
       <Card noPadding style={styles.card}>
-        <SettingsRow icon="star-outline" label="Niyet Premium" onPress={() => {}} />
+        <SettingsRow icon="star-outline" label="Niyet Premium" onPress={showComingSoon} />
         <View style={styles.divider} />
-        <SettingsRow icon="color-palette-outline" label="Bahçe Temaları" onPress={() => {}} />
+        <SettingsRow icon="color-palette-outline" label="Bahçe Temaları" onPress={showComingSoon} />
         <View style={styles.divider} />
-        <SettingsRow icon="shield-checkmark-outline" label="Gizlilik ve Güvenlik" onPress={() => {}} />
+        <SettingsRow
+          icon="shield-checkmark-outline"
+          label="Gizlilik ve Güvenlik"
+          onPress={() => Linking.openURL(PRIVACY_POLICY_URL)}
+        />
       </Card>
 
       <Pressable

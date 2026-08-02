@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, KeyboardAvoidingView, Linking, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -9,6 +9,9 @@ import Button from '@/components/ui/Button';
 import { colors, fonts, spacing } from '@/constants/theme';
 import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 import { signInWithGoogle } from '@/lib/googleAuth';
+
+const PRIVACY_POLICY_URL =
+  'https://github.com/mlh002345-blip/Zikirmatik/blob/claude/niyet-zikirmatik-design-xtervm/PRIVACY_POLICY.md';
 
 export default function RegisterScreen() {
   const router = useRouter();
@@ -140,6 +143,14 @@ export default function RegisterScreen() {
                 <Ionicons name="logo-google" size={18} color={colors.emeraldDeep} />
                 <Text style={styles.googleLabel}>{googleLoading ? '...' : 'Google ile Devam Et'}</Text>
               </Pressable>
+
+              <Text style={styles.legalText}>
+                Hesap oluşturarak{' '}
+                <Text style={styles.legalLink} onPress={() => Linking.openURL(PRIVACY_POLICY_URL)}>
+                  Gizlilik Politikası
+                </Text>
+                'nı kabul etmiş olursun.
+              </Text>
             </View>
           </View>
         </KeyboardAvoidingView>
@@ -216,5 +227,16 @@ const styles = StyleSheet.create({
     fontFamily: fonts.sansBold,
     fontSize: 15,
     color: colors.emeraldDeep,
+  },
+  legalText: {
+    fontFamily: fonts.sans,
+    fontSize: 11,
+    color: colors.mist,
+    textAlign: 'center',
+    marginTop: spacing.lg,
+  },
+  legalLink: {
+    color: colors.gold,
+    textDecorationLine: 'underline',
   },
 });
